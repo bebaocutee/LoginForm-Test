@@ -20,20 +20,14 @@
                         <service-form></service-form>
 
                     </div>
-                <!-- <div class="register-form">
-
-                </div>
-                <div class="servire-form">
-                </div> -->
             </div>
-            <!-- <div class="flex">
-                
-            </div> -->
-            <!-- <div class="brand-container">
-                <ListBrand></ListBrand>
-            </div> -->
+
+            <div class="brand-container">
+                <list-brand></list-brand>
+            </div>
         </main>
-        <!-- <Footer></Footer> -->
+        
+        <Footer></Footer> 
     </div>
 </template>
 
@@ -41,9 +35,11 @@
 import LoginForm from "@/components/LoginForm.vue";
 import RegisterForm from '@/components/RegisterForm.vue';
 import ServiceForm from '@/components/ServiceForm.vue';
+import ListBrand from '@/components/ListBrand.vue';
+import Footer from '@/components/Footer.vue';
 
 export default {
-  components: { LoginForm , RegisterForm, ServiceForm},
+  components: { LoginForm , RegisterForm, ServiceForm, ListBrand, Footer},
   setup() {},
 };
 </script>
@@ -61,22 +57,13 @@ export default {
 .d-flex {
     display: flex;
     justify-content: space-between;
-    /* width: max-content; */
     height: 478px;
     margin: 64px 80px 0 80px;
 }
 
-.left-content,
-.right-content {
-  flex: 1;
+.brand-container {
+    margin-top: 64px;
+    height: 234px;
 }
 
-.register-form {
-    display: flex;
-}
-.servire-form {
-    display: flex;
-    width: 300px;
-    height: 478px;
-}
 </style>

@@ -10,6 +10,7 @@
                         <input class="form-group__email" placeholder="Nhập số điện thoại hoặc email...">
                     </div>
                 </v-col>
+
                 <v-col class="col-password">
                     <div class="form-group">
                         <label>Mật khẩu</label>

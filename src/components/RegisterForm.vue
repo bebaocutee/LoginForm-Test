@@ -1,6 +1,6 @@
 <template>
   <div class="register-wrapper">
-    <h4 class="regiter-title">Đăng ký tài khoản</h4>
+    <h4 class="register-title">Đăng ký tài khoản</h4>
     <div class="register-container">
       <div class="register-form-content">
         <!-- row 1 -->
@@ -91,13 +91,12 @@
         <!-- row-4 -->
         <div class="form-group_row-4">
           <v-col>
-            <div class="form-group-address">
+            <div class="form-group-address-city">
               <label>Phường/ Xã</label>
               <v-select
                 placeholder="Chọn Phường/ Xã"
                 :items="['A', 'B', 'C', 'D', 'E', 'F']"
                 variant="outlined"
-                append-icon="mdi-chevron-down"
                 class="form-group-address__district"
               ></v-select>
             </div>
@@ -111,6 +110,7 @@
                 variant="outlined"
                 class="form-group-address__district"
               ></v-select>
+              
             </div>
           </v-col>
           <v-col>
@@ -120,7 +120,7 @@
                 placeholder="Chọn thành phố"
                 :items="['A', 'B', 'C', 'D', 'E', 'F']"
                 variant="outlined"
-                class="form-group-address__district"
+                class="form-group-address__district  custom-select"
               ></v-select>
             </div>
           </v-col>
@@ -153,22 +153,20 @@ export default {
 }
 /* .v-col {
   box-sizing: border-box;
-  padding: 12px;
+  padding: 0;
 } */
 .register-wrapper {
   width: 798px;
   height: 478px;
 }
-.regiter-title {
+.register-title {
   text-align: center;
-  margin-bottom: 18px;
-}
-
-.regiter-title {
-  color: #dca245;
+  margin-bottom: 10px;
   text-transform: uppercase;
+  color: #dca245;
   font-weight: 600;
   size: 25px;
+  font-size: 1.35rem;
 }
 
 .register-container {
@@ -189,8 +187,9 @@ export default {
 
 .form-group-store {
   display: flex;
+  padding: 0;
   flex-direction: column;
-  height: 67px;
+
 }
 
 .form-group__name-store {
@@ -262,26 +261,21 @@ export default {
   display: flex;
 }
 
-.form-group-address {
+/* .form-group-address-city {
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 67px;
-}
+} */
 
 .form-group-address__district {
-  height: 30px;
-  box-sizing: border-box;
-  padding: 0;
-  border: 1px solid #a0abbb;
-  border-radius: 4px;
-  color: #a0abbb;
+  /* align-items: center;
+  border-radius: 4px; */
+  height: 44px;
 }
 
 /* checkbox */
 .form-checkbox {
   display: flex;
-  /* width: 100%; */
   margin-top: 24px;
 }
 
@@ -291,13 +285,19 @@ export default {
 }
 
 .btn-checkbox {
+  /* appearance: none; */
+  /* -webkit-appearance: none; */
   width: 18px;
   height: 18px;
   margin-left: 3px;
   margin-right: 16px;
   border: 1px solid #ecad48;
-  background-color: #ecad48;
+  /* background-color: transparent; */
 }
+
+/* .btn-checkbox:checked {
+  background-color: #ECAD48;
+} */
 
 .link-text {
   margin-left: 1ch;
@@ -315,5 +315,9 @@ export default {
   border-radius: 4px;
   background-color: #fdba4d;
   color: #ffffff;
+}
+
+.v-col {
+  padding-left: 0;
 }
 </style>
