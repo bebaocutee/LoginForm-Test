@@ -11,18 +11,18 @@
             </v-row>
         </header>
         <main>
-            <div class="d-flex">
-                    <div class="register-form">
+            <v-container class="main-wrapper">
+                <v-row>
+                    <v-col cols="8" class="register-form">
                         <register-form></register-form>
-
-                    </div>
-                    <div class="service-form">
+                    </v-col>    
+                    <v-col cols="4" class="service-form">
                         <service-form></service-form>
+                    </v-col>
+            </v-row>
 
-                    </div>
-            </div>
-
-            <div class="brand-container">
+            </v-container>
+            <div cols="12" class="brand-container">
                 <list-brand></list-brand>
             </div>
         </main>
@@ -54,16 +54,17 @@ export default {
     background-position: center;
 }
 
-.d-flex {
+.main-wrapper {
+    margin-top: 64px;
+}
+
+.service-form {
     display: flex;
-    justify-content: space-between;
-    height: 478px;
-    margin: 64px 80px 0 80px;
+    justify-content: flex-end;
 }
 
 .brand-container {
     margin-top: 64px;
-    height: 234px;
 }
 
 </style>

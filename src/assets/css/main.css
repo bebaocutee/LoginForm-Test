@@ -1,0 +1,13 @@
+.form-group-address__options .v-field__input{
+    height: 44px;
+    min-height: unset;
+    padding: 10px 16px;
+}
+
+.v-container {
+    max-width: 1290px;
+}
+
+.v-row {
+    margin-top: 0;
+}

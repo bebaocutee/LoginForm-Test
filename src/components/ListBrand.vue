@@ -37,7 +37,7 @@ export default {
 
 .brand-container {
     box-sizing: border-box;
-    padding: 48px 82px 48px 78px;
+    padding: 53px 82px 53px 78px;
 }
 
 .text-h4 {

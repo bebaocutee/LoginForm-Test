@@ -4,7 +4,7 @@
     <div class="register-container">
       <div class="register-form-content">
         <!-- row 1 -->
-        <div class="form-group_row-1">
+        <v-row>
           <v-col>
             <div class="form-group-store">
               <label>Tên cửa hàng</label>
@@ -34,10 +34,10 @@
               />
             </div>
           </v-col>
-        </div>
+        </v-row>
 
         <!-- row 2 -->
-        <div class="form-group_row-2">
+        <v-row>
           <v-col>
             <div class="form-group-password">
               <label>Mật khẩu</label>
@@ -73,10 +73,10 @@
               </span>
             </div>
           </v-col>
-        </div>
+        </v-row>
 
         <!-- row-3 -->
-        <div class="form-group_row-3">
+        <v-row>
           <v-col>
             <div class="form-group-address">
               <label>Địa chỉ</label>
@@ -86,18 +86,18 @@
               />
             </div>
           </v-col>
-        </div>
+        </v-row>
 
         <!-- row-4 -->
-        <div class="form-group_row-4">
+        <v-row>
           <v-col>
-            <div class="form-group-address-city">
+            <div class="form-group-address">
               <label>Phường/ Xã</label>
               <v-select
+                class="form-group-address__options"
                 placeholder="Chọn Phường/ Xã"
                 :items="['A', 'B', 'C', 'D', 'E', 'F']"
                 variant="outlined"
-                class="form-group-address__district"
               ></v-select>
             </div>
           </v-col>
@@ -108,7 +108,7 @@
                 placeholder="Chọn Quận/ Huyện"
                 :items="['A', 'B', 'C', 'D', 'E', 'F']"
                 variant="outlined"
-                class="form-group-address__district"
+                class="form-group-address__options"
               ></v-select>
               
             </div>
@@ -120,20 +120,31 @@
                 placeholder="Chọn thành phố"
                 :items="['A', 'B', 'C', 'D', 'E', 'F']"
                 variant="outlined"
-                class="form-group-address__district  custom-select"
+                class="form-group-address__options"
               ></v-select>
             </div>
           </v-col>
-        </div>
+        </v-row>
       </div>
 
       <div class="form-checkbox">
         <div class="checkbox-content">
           <input type="checkbox" class="btn-checkbox" />
-          <p class="text">
-            Tôi đã đọc và đồng ý với
-          </p>
-          <a href="#" class="link-text">Chính sách bảo mật thông tin</a>
+          <p class="text">Tôi đã đọc và đồng ý với</p>
+
+          <span class="link-text" @click="showDialog">Chính sách bảo mật thông tin</span>
+          <!-- Dialog -->
+          <div v-if="policyDialog" class="dialog-overlay">
+            <div class="dialog-protect">
+              <img src="/src/assets/images/protect.svg" alt="protect" height="64px" weight="64px"/>
+              <h4 class="protect__h4">Chính sách đang được cập nhật</h4>
+                <!-- <div class="btn"> -->
+              <p class="protect_p1">Cảm ơn bạn đã sử dụng dịch vụ!</p>
+              <span class="protect_p2" @click="hideDialog">Vui lòng kiểm tra lại sau</span>
+                <!-- </div> -->
+            </div>
+          </div>
+
           <button class="register-button">Đăng ký ngay</button>
         </div>
       </div>
@@ -142,23 +153,32 @@
 </template>
 
 <script>
+import { ref } from "vue";
 export default {
-  setup() {},
+  setup() {
+    const policyDialog = ref(false);
+    const showDialog = () => {
+      policyDialog.value = true;
+    };
+
+    const hideDialog = () => {
+      policyDialog.value = false;
+    };
+
+    return {
+      showDialog,
+      policyDialog,
+      hideDialog,
+    };
+  },
 };
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-}
-/* .v-col {
-  box-sizing: border-box;
-  padding: 0;
-} */
 .register-wrapper {
-  width: 798px;
-  height: 478px;
+  width: max-content;
 }
+
 .register-title {
   text-align: center;
   margin-bottom: 10px;
@@ -175,10 +195,6 @@ export default {
 
 }
 
-.register-form-content {
-  display: flex;
-  flex-direction: column;
-}
 
 /* row-1 */
 .form-group_row-1 {
@@ -193,12 +209,15 @@ export default {
 }
 
 .form-group__name-store {
-  /* width: 250px; */
   height: 44px;
   padding: 0 12px;
   border: 1px solid #a0abbb;
   border-radius: 4px;
   color: #a0abbb;
+}
+
+.form-group__name-store:not(:placeholder-shown) {
+  color: black;
 }
 
 /* row-2 */
@@ -214,7 +233,6 @@ export default {
 }
 
 .form-group__input-password {
-  /* width: 387px; */
   height: 44px;
   padding: 0 12px;
   border: 1px solid #a0abbb;
@@ -222,8 +240,12 @@ export default {
   color: #a0abbb;
 }
 
+.form-group__input-password:not(:placeholder-shown) {
+  color: black;
+}
+
+
 .form-group__confirm-pass {
-  /* width: 387px; */
   height: 44px;
   padding: 0 12px 0 12px;
   border: 1px solid #a0abbb;
@@ -256,56 +278,49 @@ export default {
   color: #a0abbb;
 }
 
+.form-group-address__apartment:not(:placeholder-shown) {
+  color: black;
+}
+
+
 /* row-4 */
 .form-group_row-4 {
   display: flex;
 }
 
-/* .form-group-address-city {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-} */
-
 .form-group-address__district {
-  /* align-items: center;
-  border-radius: 4px; */
   height: 44px;
 }
 
-/* checkbox */
-.form-checkbox {
-  display: flex;
-  margin-top: 24px;
+.form-group-address__district:not(:placeholder-shown) {
+  color: black;
 }
 
+
+/* checkbox */
 .checkbox-content {
   display: flex;
   align-items: center;
 }
 
 .btn-checkbox {
-  /* appearance: none; */
-  /* -webkit-appearance: none; */
   width: 18px;
   height: 18px;
   margin-left: 3px;
   margin-right: 16px;
   border: 1px solid #ecad48;
-  /* background-color: transparent; */
 }
-
-/* .btn-checkbox:checked {
-  background-color: #ECAD48;
-} */
 
 .link-text {
   margin-left: 1ch;
   text-decoration: none;
   color: #ECAD48;
+  cursor: pointer;
 }
 
 .register-button {
+  display: flex;
+  align-items: center;
   height: 44px;
   margin-left: 220px;
   padding: 12px 18px 12px 18px;
@@ -317,7 +332,47 @@ export default {
   color: #ffffff;
 }
 
-.v-col {
-  padding-left: 0;
+/* Dialog */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.dialog-protect {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  width: 650px;
+  background-color: #fff;
+  padding: 24px 0 24px 0 ;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.protect__h4 {
+  padding: 24px 0;
+  text-transform: uppercase;
+  color: #10B981;
+  font-weight: 600;
+  size: 25px;
+  line-height: 34px;
+  font-size: 1.25rem;
+}
+
+.protect_p2 {
+  padding: 24px 0;
+  text-decoration: none;
+  color: #F59E0B;
+  cursor: pointer;
 }
 </style>
