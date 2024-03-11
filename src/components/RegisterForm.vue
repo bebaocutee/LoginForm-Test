@@ -11,6 +11,7 @@
               <input
                 class="form-group__name-store"
                 placeholder="Nhập tên cửa hàng..."
+                v-model="form.store_name"
               />
             </div>
           </v-col>
@@ -21,6 +22,7 @@
               <input
                 class="form-group__name-store"
                 placeholder="Nhập số điện thoại"
+                v-model="form.phone_number"
               />
             </div>
           </v-col>
@@ -31,6 +33,7 @@
               <input
                 class="form-group__name-store"
                 placeholder="Nhập email..."
+                v-model="form.email"
               />
             </div>
           </v-col>
@@ -44,6 +47,7 @@
               <input
                 class="form-group__input-password"
                 placeholder="Nhập mật khẩu..."
+                v-model="form.password"
               />
               <span class="password-icon">
                 <img
@@ -62,6 +66,7 @@
               <input
                 class="form-group__confirm-pass"
                 placeholder="Xác nhận mật khẩu..."
+                v-model="form.password_comfirmation"
               />
               <span class="password-icon">
                 <img
@@ -83,6 +88,7 @@
               <input
                 class="form-group-address__apartment"
                 placeholder="Nhập số nhà, tòa nhà, tên đường..."
+                v-model="form.address"
               />
             </div>
           </v-col>
@@ -96,8 +102,12 @@
               <v-select
                 class="form-group-address__options"
                 placeholder="Chọn Phường/ Xã"
-                :items="['A', 'B', 'C', 'D', 'E', 'F']"
+                :items="wards"
                 variant="outlined"
+                v-model="form.ward_id"
+                item-title="name"
+                item-value="id"
+                @update:model-value="getDistricts"
               ></v-select>
             </div>
           </v-col>
@@ -106,9 +116,13 @@
               <label>Quận/ Huyện</label>
               <v-select
                 placeholder="Chọn Quận/ Huyện"
-                :items="['A', 'B', 'C', 'D', 'E', 'F']"
-                variant="outlined"
+                :items="districts"                
                 class="form-group-address__options"
+                variant="outlined"
+                v-model="form.district_id"
+                item-title="name"
+                item-value="id"
+                @change="getDistricts"
               ></v-select>
               
             </div>
@@ -118,9 +132,13 @@
               <label>Thành phố</label>
               <v-select
                 placeholder="Chọn thành phố"
-                :items="['A', 'B', 'C', 'D', 'E', 'F']"
+                :items="provinces"
                 variant="outlined"
                 class="form-group-address__options"
+                v-model="form.province_id"
+                item-title="name"
+                item-value="id"
+                @update:model-value="getProvince"
               ></v-select>
             </div>
           </v-col>
@@ -138,14 +156,25 @@
             <div class="dialog-protect">
               <img src="/src/assets/images/protect.svg" alt="protect" height="64px" weight="64px"/>
               <h4 class="protect__h4">Chính sách đang được cập nhật</h4>
-                <!-- <div class="btn"> -->
               <p class="protect_p1">Cảm ơn bạn đã sử dụng dịch vụ!</p>
               <span class="protect_p2" @click="hideDialog">Vui lòng kiểm tra lại sau</span>
-                <!-- </div> -->
             </div>
           </div>
 
-          <button class="register-button">Đăng ký ngay</button>
+          <!-- btn-register -->
+          <button class="register-button" @click="btnRegister">Đăng ký ngay</button>
+          <!-- Dialog-sussess -->
+          <div v-if="registerDialog" class="dialog-overlay">
+            <div class="dialog-protect">
+              <img src="/src/assets/images/protect.svg" alt="protect" height="64px" weight="64px"/>
+              <h4 class="protect__h4">Đăng ký thành công</h4>
+              <p class="protect_p1">Để sử dụng dịch vụ thu hộ, <br> bạn có muốn Ký kết hợp đồng điện tử ngay ?</p>
+              <div class="btn-login">
+                <button class="btn-login" @click="hideRegisterDialog">Đăng nhập</button>
+                <button class="btn-contract">Ký kết hợp đồng</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -153,7 +182,8 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import axios from "axios";
+import { ref, onMounted } from "vue";
 export default {
   setup() {
     const policyDialog = ref(false);
@@ -165,10 +195,87 @@ export default {
       policyDialog.value = false;
     };
 
+    // dialog-register
+    const registerDialog = ref(false);
+
+    const hideRegisterDialog = () => {
+      registerDialog.value = false;
+    }
+
+    var form = {};
+
+    const btnRegister = async () => {
+      registerDialog.value = true;
+      try {
+        const response = await axios.post('register', form);
+        console.log(response);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    var provinces = ref([]);
+    var districts = ref([]);
+    var wards = ref([]);
+
+    const getProvince = () => {
+      axios.get('provinces')
+        .then(response => {
+          provinces.value = response.data.data;
+          console.log(provinces);
+
+          if (form.province_id) {
+            getDistricts(form.province_id);
+          }
+
+        })
+        .catch (error => {
+          console.log(error);
+        });
+    };
+
+    const getDistricts = () => {
+      axios.get('districts?province_id=${form.province_id}')
+        .then(response => {
+          districts.value = response.data.data;
+          console.log(districts);
+        })
+        .catch (error => {
+          console.log(error);
+        });
+    };
+
+    const getWards = () => {
+      axios.get('wards?district_id=district_id')
+        .then(response => {
+          wards.value = response.data.data;
+          console.log(wards);
+        })
+        .catch (error => {
+          console.log(error);
+        });
+    };
+    
+    onMounted(() => {
+      getProvince();
+      getDistricts();
+      getWards();
+    });
+
     return {
       showDialog,
       policyDialog,
       hideDialog,
+      registerDialog,
+      hideRegisterDialog,
+      btnRegister,
+      form,
+      provinces,
+      getProvince,
+      districts,
+      getDistricts,
+      wards,
+      getWards,
     };
   },
 };
@@ -244,6 +351,9 @@ export default {
   color: black;
 }
 
+.form-group__confirm-pass:not(:placeholder-shown) {
+  color: black;
+}
 
 .form-group__confirm-pass {
   height: 44px;

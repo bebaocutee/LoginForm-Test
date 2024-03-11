@@ -10,6 +10,7 @@
             <input
               class="form-group__email"
               placeholder="Nhập số điện thoại hoặc email..."
+              v-model="form.account"
             />
           </div>
         </v-col>
@@ -23,6 +24,7 @@
                 type="password"
                 placeholder="Nhập mật khẩu..."
                 required
+                v-model="form.password"
               />
               <span class="password-icon">
                 <img
@@ -36,7 +38,7 @@
           </div>
         </v-col>
         <v-col class="col-login">
-          <button class="login-button">Đăng nhập</button>
+          <button class="login-button" @click="login">Đăng nhập</button>
         </v-col>
       </v-row>
     </div>
@@ -102,6 +104,7 @@
 
 <script>
 import { ref } from "vue";
+import { useRouter } from 'vue-router';
 export default {
   setup() {
     const forgotPasswordDialog = ref(false);
@@ -136,6 +139,19 @@ export default {
       forgotPasswordDialog.value = true;
     };
 
+    var form = {};
+    const router = useRouter();
+
+    const login = async () => {
+      try {
+        const response = await axios.post('login', form);
+        console.log(response);
+        router.push('/trang-chu');
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
     return {
       forgotPasswordDialog,
       emailOrPhone,
@@ -145,6 +161,9 @@ export default {
       OTPDialog,
       goBack,
       OTPhideDialog,
+      login,
+      form,
+      router,
     };
   },
 };
@@ -165,6 +184,8 @@ export default {
 .login-form-container {
   position: relative;
   display: flex;
+  justify-content: center;
+  align-items: center;
   max-width: max-content;
   height: 124px;
   padding: 14px;
@@ -194,9 +215,9 @@ export default {
   padding: 16px 0;
 }
 .form-group__email {
-  width: 290px;
+  /* width: 290px; */
   height: 44px;
-  padding: 0 12px 0 12px;
+  padding: 0 12px;
   box-sizing: border-box;
   border: 1px solid #a0abbb;
   border-radius: 4px;
@@ -205,15 +226,24 @@ export default {
 .form-group__input {
   position: relative;
 }
+
 .form-group__password {
-  width: 250px;
+  /* width: 250px; */
   height: 44px;
-  padding: 0 12px 0 12px;
+  padding: 0 12px;
   border-radius: 4px;
   box-sizing: border-box;
   border: 1px solid #a0abbb;
   border-radius: 4px;
   color: #a0abbb;
+}
+
+.form-group__password:not(:placeholder-shown) {
+  color: black;
+}
+
+.form-group__email:not(:placeholder-shown) {
+  color: black;
 }
 .password-icon {
   position: absolute;
@@ -351,5 +381,57 @@ export default {
   transform: translate(-50%, -50%);
   z-index: 5;
   background-color: #fff;
+}
+
+.form-group-OTP {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.Otp-p {
+  padding-top: 24px;
+  color: #10B981;
+  font-weight: 600;
+  size: 25px;
+  line-height: 34px;
+  font-size: 1.25rem;
+}
+
+.count-down__p {
+  padding-top: 24px;
+  padding-bottom: 16px;
+  color: #ECAD48;
+}
+
+.text-error {
+  padding-top: 16px;
+  padding-bottom: 32px;
+  color: #4B5768 !important;
+}
+
+.resend-otp {
+  color: #0079ED;
+}
+
+.btn-back {
+  height: 44px;
+  margin-right: 24px;
+  padding-left: 12px;
+  padding-right: 12px;
+  background-color: #E7EAEE;
+  color: #323A46;
+  border: 1px solid #E7EAEE;
+  border-radius: 4px;
+}
+
+.btn-change-password {
+  height: 44px;
+  padding-left: 12px;
+  padding-right: 12px;
+  background-color: #fdba4d;
+  color: #ffffff;
+  border: 1px solid #fdba4d;
+  border-radius: 4px;
 }
 </style>
