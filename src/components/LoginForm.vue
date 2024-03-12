@@ -93,11 +93,62 @@
           </div>
           <div class="btn">
             <button class="btn-back" @click="goBack">Trở về</button>
-            <button class="btn-change-password">Thay đổi mật khẩu</button>
+            <button class="btn-change-password" @click="changePassword">Thay đổi mật khẩu</button>
           </div>
         </div>
       </div>
 
+      <!-- Dialog-change password -->
+      <div v-if="changePasswordDialog" class="dialog-overlay-change-password">
+        <div class="dialog-change-password">
+          <div class="text-close">
+            <h6 class="forgot-password__h6">Thiết lập mật khẩu mới</h6>
+            <span class="button-close" @click="changehideDialog"
+              ><img src="/src/assets/images/close.svg" alt="close"
+            /></span>
+          </div>
+          <div class="group-change-password">
+            <div class="form-group__change-pasword">
+              <label>Mật khẩu mới</label>
+                <input
+                  class="new-password"
+                  type="password"
+                  placeholder="Nhập mật khẩu..."
+                />
+                <span class="change-password-icon">
+                  <img
+                    src="/src/assets/images/lookpassword.svg"
+                    width="24px"
+                    height="24px"
+                    alt="lookpassword"
+                  />
+                </span>
+            </div>
+
+            <div class="form-group__change-pasword">
+              <label>Mật khẩu mới</label>
+              <input
+                class="comfirm-password"
+                type="password"
+                placeholder="Nhập mật khẩu..."
+              />
+              <span class="change-password-icon">
+                <img
+                  src="/src/assets/images/lookpassword.svg"
+                  width="24px"
+                  height="24px"
+                  alt="lookpassword"
+                />
+              </span>
+            </div>
+          </div>
+
+          <div class="btn-change-login">
+            <button class="change-login" @click="goLogin">Đăng nhập</button>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -139,6 +190,25 @@ export default {
       forgotPasswordDialog.value = true;
     };
 
+    // change password
+    const changePasswordDialog = ref(false);
+    const changehideDialog = () => {
+      changePasswordDialog.value = false;
+    }
+
+
+    const changePassword = () => {
+      changePasswordDialog.value = true;
+      OTPDialog.value = false;
+
+    }
+
+    const goLogin= () => {
+      changePasswordDialog.value = false;
+      changePassword.value = true;
+    };
+    // login
+
     var form = {};
     const router = useRouter();
 
@@ -164,6 +234,10 @@ export default {
       login,
       form,
       router,
+      changePassword,
+      goLogin,
+      changePasswordDialog,
+      changehideDialog,
     };
   },
 };
@@ -215,7 +289,6 @@ export default {
   padding: 16px 0;
 }
 .form-group__email {
-  /* width: 290px; */
   height: 44px;
   padding: 0 12px;
   box-sizing: border-box;
@@ -228,7 +301,6 @@ export default {
 }
 
 .form-group__password {
-  /* width: 250px; */
   height: 44px;
   padding: 0 12px;
   border-radius: 4px;
@@ -434,4 +506,90 @@ export default {
   border: 1px solid #fdba4d;
   border-radius: 4px;
 }
+
+/* dialog change password */
+.dialog-overlay-change-password {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.dialog-change-password {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  background-color: #fff;
+}
+
+/*  */
+.group-change-password {
+  padding: 0 24px;
+  padding-top: 24px;
+}
+.form-group__change-pasword {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 24px;
+}
+
+.new-password {
+  height: 44px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid #a0abbb;
+  border-radius: 4px;
+  color: #a0abbb;
+}
+.new-password:not(:placeholder-shown) {
+  color: black;
+}
+
+.comfirm-password:not(:placeholder-shown) {
+  color: black;
+}
+
+.comfirm-password {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  border: 1px solid #a0abbb;
+  border-radius: 4px;
+  color: #a0abbb;
+}
+
+.change-password-icon {
+  position: absolute;
+  top: 38%;
+  right: 10px;
+}
+
+.btn-change-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 48px;
+}
+
+.change-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 44px;
+  padding: 12px 18px 12px 18px;
+
+  box-sizing: border-box;
+  border: 1px solid #fdba4d;
+  border-radius: 4px;
+  background-color: #fdba4d;
+  color: #ffffff;
+}
+
 </style>

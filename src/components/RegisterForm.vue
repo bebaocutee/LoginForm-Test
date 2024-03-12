@@ -7,34 +7,40 @@
         <v-row>
           <v-col>
             <div class="form-group-store">
-              <label>Tên cửa hàng</label>
+              <label>Tên cửa hàng<span class="required">*</span></label>
               <input
                 class="form-group__name-store"
                 placeholder="Nhập tên cửa hàng..."
                 v-model="form.store_name"
+                @input="errorMessages.store_name = null"
               />
+              <span v-if="errorMessages.store_name" class="text-danger">{{ errorMessages.store_name }}</span>
             </div>
           </v-col>
 
           <v-col>
             <div class="form-group-store">
-              <label>Số điện thoại</label>
+              <label>Số điện thoại<span class="required">*</span></label>
               <input
                 class="form-group__name-store"
                 placeholder="Nhập số điện thoại"
                 v-model="form.phone_number"
+                @input="errorMessages.phone_number = null"
               />
+              <span v-if="errorMessages.phone_number" class="text-danger">{{ errorMessages.phone_number }}</span>
             </div>
           </v-col>
 
           <v-col>
             <div class="form-group-store">
-              <label>Email</label>
+              <label>Email<span class="required">*</span></label>
               <input
                 class="form-group__name-store"
                 placeholder="Nhập email..."
                 v-model="form.email"
+                @input="errorMessages.email = null"
               />
+              <span v-if="errorMessages.email" class="text-danger">{{ errorMessages.email }}</span>
             </div>
           </v-col>
         </v-row>
@@ -43,12 +49,14 @@
         <v-row>
           <v-col>
             <div class="form-group-password">
-              <label>Mật khẩu</label>
+              <label>Mật khẩu<span class="required">*</span></label>
               <input
                 class="form-group__input-password"
                 placeholder="Nhập mật khẩu..."
                 v-model="form.password"
+                @input="errorMessages.password = null"
               />
+              <span v-if="errorMessages.password" class="text-danger">{{ errorMessages.password }}</span>
               <span class="password-icon">
                 <img
                   src="/src/assets/images/lookpassword.svg"
@@ -62,12 +70,14 @@
 
           <v-col>
             <div class="form-group-password">
-              <label>Xác nhận mật khẩu</label>
+              <label>Xác nhận mật khẩu<span class="required">*</span></label>
               <input
                 class="form-group__confirm-pass"
                 placeholder="Xác nhận mật khẩu..."
-                v-model="form.password_comfirmation"
+                v-model="form.password_confirmation"
+                @input="errorMessages.password_confirmation = null"
               />
+              <span v-if="errorMessages.password_confirmation" class="text-danger">{{ errorMessages.password_confirmation }}</span>
               <span class="password-icon">
                 <img
                   src="/src/assets/images/lookpassword.svg"
@@ -89,7 +99,9 @@
                 class="form-group-address__apartment"
                 placeholder="Nhập số nhà, tòa nhà, tên đường..."
                 v-model="form.address"
+                @input="errorMessages.address = null"
               />
+              <span v-if="errorMessages.address" class="text-danger">{{ errorMessages.address }}</span>
             </div>
           </v-col>
         </v-row>
@@ -107,8 +119,9 @@
                 v-model="form.ward_id"
                 item-title="name"
                 item-value="id"
-                @update:model-value="getDistricts"
+                @input="errorMessages.ward_id = null"
               ></v-select>
+              <span v-if="errorMessages.ward_id" class="text-danger">{{ errorMessages.ward_id }}</span>
             </div>
           </v-col>
           <v-col>
@@ -121,9 +134,11 @@
                 variant="outlined"
                 v-model="form.district_id"
                 item-title="name"
-                item-value="id"
-                @change="getDistricts"
+                item-value="id"  
+                @input="errorMessages.district_id = null"             
+                @update:model-value="getWards"
               ></v-select>
+              <span v-if="errorMessages.district_id" class="text-danger">{{ errorMessages.district_id }}</span>
               
             </div>
           </v-col>
@@ -138,7 +153,9 @@
                 v-model="form.province_id"
                 item-title="name"
                 item-value="id"
-                @update:model-value="getProvince"
+                :error="errorMessages.province_id != null"
+                :error-messages="errorMessages.province_id"
+                @update:model-value="getDistricts"
               ></v-select>
             </div>
           </v-col>
@@ -147,10 +164,14 @@
 
       <div class="form-checkbox">
         <div class="checkbox-content">
-          <input type="checkbox" class="btn-checkbox" />
-          <p class="text">Tôi đã đọc và đồng ý với</p>
-
-          <span class="link-text" @click="showDialog">Chính sách bảo mật thông tin</span>
+          <label class="custom-checkbox">
+            <input type="checkbox" v-model="form.checkmark" class="btn-checkbox" @input="errorMessages.checkmark = null"/>
+            <span v-if="errorMessages.checkmark" class="text-danger">{{ errorMessages.checkmark }}</span>
+            <span class="checkmark" ></span>
+            <p class="text">Tôi đã đọc và đồng ý với</p>
+            <span class="link-text" @click="showDialog">Chính sách bảo mật thông tin</span>
+          </label>
+          
           <!-- Dialog -->
           <div v-if="policyDialog" class="dialog-overlay">
             <div class="dialog-protect">
@@ -163,18 +184,36 @@
 
           <!-- btn-register -->
           <button class="register-button" @click="btnRegister">Đăng ký ngay</button>
-          <!-- Dialog-sussess -->
+
+          <!-- Dialog-register-sussess -->
           <div v-if="registerDialog" class="dialog-overlay">
-            <div class="dialog-protect">
+            <div class="dialog-register-success">
               <img src="/src/assets/images/protect.svg" alt="protect" height="64px" weight="64px"/>
               <h4 class="protect__h4">Đăng ký thành công</h4>
-              <p class="protect_p1">Để sử dụng dịch vụ thu hộ, <br> bạn có muốn Ký kết hợp đồng điện tử ngay ?</p>
-              <div class="btn-login">
-                <button class="btn-login" @click="hideRegisterDialog">Đăng nhập</button>
-                <button class="btn-contract">Ký kết hợp đồng</button>
-              </div>
+              <p class="dialog-protect_p1">Để sử dụng dịch vụ thu hộ,</p>  
+              <p>bạn có muốn Ký kết hợp đồng điện tử ngay ?</p>
+                <div class="group-login">          
+                  <button class="btn-login" @click="hideRegisterDialog">Đăng nhập</button>
+                  <button class="btn-contract">Ký kết hợp đồng</button>
+                </div>
             </div>
           </div>
+
+           <!-- Dialog-registre-fail -->
+           <div v-if="failRegisterDialog" class="dialog-overlay">
+            <div class="dialog-register-success">
+              <img src="/src/assets/images/registerFail.svg" alt="register-fail" height="64px" weight="64px"/>
+              <h4 class="fail__h4">Đăng ký không thành công</h4>
+              <p class="dialog-protect_p1">Thông tin bạn đăng ký có thể đã trùng </p>  
+              <p>với một tài khoản khác trong hệ thống</p>
+                <div class="group-login">          
+                  <button class="btn-login" @click="hideRegisterDialog">Bỏ qua đăng ký</button>
+                  <button class="btn-contract">Thử lại</button>
+                </div>
+            </div>
+          </div>
+
+
         </div>
       </div>
     </div>
@@ -182,7 +221,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import { ref, onMounted } from "vue";
 export default {
   setup() {
@@ -195,23 +233,107 @@ export default {
       policyDialog.value = false;
     };
 
-    // dialog-register
+    //dialog-register
     const registerDialog = ref(false);
+    const failRegisterDialog = ref(false)
 
     const hideRegisterDialog = () => {
       registerDialog.value = false;
     }
 
-    var form = {};
+    const form = ref ({
+      store_name: '',
+      phone_number: '',
+      email: '',
+      password: '',
+      password_confirmation: '',
+      address: '',
+      province_id: null,
+      district_id: null,
+      ward_id: null,
+      checkmark: false,
+    });
+
+    const errorMessages = ref({})
+
+    function validateRegister() {
+      // check store_name
+      if (form.value.store_name.trim() === '') {
+        errorMessages.value.store_name = 'Nhập Tên cửa hàng';
+        return;
+      }
+
+      // check phone_number
+      const phoneNumberFormat = /(09|03|07|08|05)[0-9]{8}/;
+      if (!phoneNumberFormat.test(form.value.phone_number)) {
+        errorMessages.value.phone_number = 'Số điện thoại không hợp lệ';
+        return;
+      }
+
+      // check email
+      const emailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailFormat.test(form.value.email)) {
+        errorMessages.value.email = 'Email không hợp lệ';
+        return;
+      }
+
+      // check password
+      const passwordFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{9,}$/;
+      if (!passwordFormat.test(form.value.password)) {
+        errorMessages.value.password = 'Mật khẩu ít nhất 9 ký tự gồm 1: chữ in hoa, thường, số, ký tự đặc biệt ';
+        return;
+      }
+
+      // check confirpassword
+      if (form.value.password_confirmation !== form.value.password) {
+        errorMessages.value.password_confirmation = 'Mật khẩu xác nhận không trùng khớp';
+        return;
+      }
+
+      // check address
+      if (form.value.address.trim() === '') {
+        errorMessages.value.address = 'Nhập địa chỉ';
+        return ;
+      }
+
+      if (!form.value.province_id) {
+        errorMessages.value.province_id = 'Vui lòng chọn Thành phố'; 
+        return 'alo13';
+      }
+
+      if (!form.value.district_id) {
+        errorMessages.value.district_id = 'Vui lòng chọn Quận/Huyện';
+        return;
+      }
+
+      if (!form.value.ward_id) {
+        errorMessages.value.ward_id = 'Vui lòng chọn Phường/ Xã';
+        return;
+      }
+
+      if (!form.value.checkmark) {
+        errorMessages.value.checkmark =  'Bạn phải Đồng ý với chính sách bảo mật thông tin';
+        return;
+      }
+      return 'success';
+    }
 
     const btnRegister = async () => {
-      registerDialog.value = true;
-      try {
-        const response = await axios.post('register', form);
-        console.log(response);
-      } catch (error) {
-        console.error(error);
+      const validation = validateRegister();
+      if (validation === 'success') {
+        try {
+          const response = await axios.post('register', form.value);
+          console.log(response);
+          registerDialog.value = true;
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        failRegisterDialog.value = true;
+        console.log(validation);
+
       }
+      
     };
 
     var provinces = ref([]);
@@ -222,10 +344,9 @@ export default {
       axios.get('provinces')
         .then(response => {
           provinces.value = response.data.data;
-          console.log(provinces);
 
           if (form.province_id) {
-            getDistricts(form.province_id);
+            getDistricts();
           }
 
         })
@@ -235,18 +356,30 @@ export default {
     };
 
     const getDistricts = () => {
-      axios.get('districts?province_id=${form.province_id}')
+      errorMessages.value.province_id = null;
+
+      if (form.value.province_id) {
+        axios.get(`districts?province_id=${form.value.province_id}`)
         .then(response => {
           districts.value = response.data.data;
-          console.log(districts);
+
+          if (form.district_id) {
+            getWards();
+          }
         })
         .catch (error => {
           console.log(error);
         });
+      } else {
+        districts.value = [];
+        // wards.value = [];
+      }
+      
     };
 
     const getWards = () => {
-      axios.get('wards?district_id=district_id')
+      if (form.value.district_id) {
+        axios.get(`wards?district_id=${form.value.district_id}`)
         .then(response => {
           wards.value = response.data.data;
           console.log(wards);
@@ -254,12 +387,14 @@ export default {
         .catch (error => {
           console.log(error);
         });
+      } else {
+        wards.value = [];
+      }
+      
     };
     
     onMounted(() => {
       getProvince();
-      getDistricts();
-      getWards();
     });
 
     return {
@@ -276,6 +411,8 @@ export default {
       getDistricts,
       wards,
       getWards,
+      errorMessages,
+      failRegisterDialog,
     };
   },
 };
@@ -309,6 +446,7 @@ export default {
 }
 
 .form-group-store {
+  position: relative;
   display: flex;
   padding: 0;
   flex-direction: column;
@@ -326,6 +464,12 @@ export default {
 .form-group__name-store:not(:placeholder-shown) {
   color: black;
 }
+
+.required {
+  padding-left: 1ch;
+  color: #F0BD6D;
+}
+
 
 /* row-2 */
 .form-group_row-2 {
@@ -410,15 +554,41 @@ export default {
 /* checkbox */
 .checkbox-content {
   display: flex;
+  justify-content: center;
   align-items: center;
 }
 
+.custom-checkbox {
+  position: relative;
+  display: flex;
+}
+
 .btn-checkbox {
-  width: 18px;
-  height: 18px;
   margin-left: 3px;
   margin-right: 16px;
-  border: 1px solid #ecad48;
+}
+
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ECAD48; 
+  border-radius: 3px;
+  background-color: #ffffff;
+}
+
+.custom-checkbox input:checked ~ .checkmark:after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  width: 6px;
+  height: 12px;
+  border: solid #ECAD48;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .link-text {
@@ -442,7 +612,7 @@ export default {
   color: #ffffff;
 }
 
-/* Dialog */
+/* Dialog  policy */
 .dialog-overlay {
   position: fixed;
   top: 0;
@@ -479,10 +649,78 @@ export default {
   font-size: 1.25rem;
 }
 
+.fail__h4 {
+  padding: 24px 0;
+  text-transform: uppercase;
+  color: #DC2626;
+  font-weight: 600;
+  size: 25px;
+  line-height: 34px;
+  font-size: 1.25rem;
+}
+
 .protect_p2 {
   padding: 24px 0;
   text-decoration: none;
   color: #F59E0B;
   cursor: pointer;
 }
+
+/* Dialog register success */
+.dialog-register-success {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  width: 560px;
+  background-color: #fff;
+  padding: 24px 0 24px 0 ;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.group-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+.btn-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 43px;
+  margin-right: 12px;
+  padding: 12px 18px;
+  background-color: #E7EAEE;
+  color: #323A46;
+  border: 1px solid #E7EAEE;
+  border-radius: 4px;
+}
+
+.btn-contract {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 43px;
+  margin-left: 12px;
+  padding: 12px 18px;
+  background-color: #19B88B;
+  color: #ffffff;
+  border: 1px solid #19B88B;
+  border-radius: 4px;
+}
+
+.text-danger {
+  position: absolute;
+  bottom: -18px;
+  color: #ECAD48;
+  font-size: 0.75rem;
+}
+
 </style>

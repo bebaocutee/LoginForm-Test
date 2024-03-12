@@ -31,7 +31,7 @@
                         <p class="text-name">NGUYỄN VĂN HỌC</p>
                         <img src="@/assets/images/avatar.svg" alt="avatar" height="107px" weight="102px" class="img-avatar">
                         <div class="button-exit">
-                            <button class="exit">Thoát</button>
+                            <button class="exit" @click="exitLogin">Thoát</button>
                         </div>
                     </div>
                 </v-col>
@@ -65,10 +65,25 @@ import RegisterForm from '@/components/RegisterForm.vue';
 import ServiceForm from '@/components/ServiceForm.vue';
 import ListBrand from '@/components/ListBrand.vue';
 import Footer from '@/components/Footer.vue';
+import { useRouter } from 'vue-router';
+import { ref } from "vue";
 
 export default {
   components: { LoginForm , RegisterForm, ServiceForm, ListBrand, Footer},
-  setup() {},
+  setup() {
+    var form = {};
+    const router = useRouter();
+
+    const exitLogin = async () => {
+        router.push('/dang-nhap');
+    }
+
+    return {
+        router,
+        exitLogin,
+        form,
+    }
+  },
 };
 </script>
 
