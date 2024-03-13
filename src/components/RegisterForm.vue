@@ -53,11 +53,12 @@
               <input
                 class="form-group__input-password"
                 placeholder="Nhập mật khẩu..."
+                :type="showPassword ? 'text' : 'password'"
                 v-model="form.password"
                 @input="errorMessages.password = null"
               />
               <span v-if="errorMessages.password" class="text-danger">{{ errorMessages.password }}</span>
-              <span class="password-icon">
+              <span class="password-icon" @click="togglePassword">
                 <img
                   src="/src/assets/images/lookpassword.svg"
                   width="24px"
@@ -74,11 +75,12 @@
               <input
                 class="form-group__confirm-pass"
                 placeholder="Xác nhận mật khẩu..."
+                :type="showConfirmPassword ? 'text' : 'password'"
                 v-model="form.password_confirmation"
                 @input="errorMessages.password_confirmation = null"
               />
               <span v-if="errorMessages.password_confirmation" class="text-danger">{{ errorMessages.password_confirmation }}</span>
-              <span class="password-icon">
+              <span class="password-icon" @click="toggleConfirmPassword">
                 <img
                   src="/src/assets/images/lookpassword.svg"
                   width="24px"
@@ -185,6 +187,31 @@
           <!-- btn-register -->
           <button class="register-button" @click="btnRegister">Đăng ký ngay</button>
 
+          <!-- Dialod-send-OTP -->
+          <div v-if="OTPDialog" class="dialog-overlay-OTP">
+            <div class="dialog-OTP">
+              <div class="text-close">
+                <h6 class="forgot-password__h6">Nhập mã OTP</h6>
+                <span class="button-close" @click="OTPhideDialog"
+                  ><img src="/src/assets/images/close.svg" alt="close"
+                /></span>
+              </div>
+              <div class="form-group-OTP">
+                <p class="count-down__p">Thời gian còn lại: {{ countdownDisplay }} phút</p>
+                <v-otp-input v-model="form.otp"></v-otp-input>
+                <span v-if="errorMessages.otp" class="text-error-message-otp">{{ errorMessages.otp }}</span>
+
+                <p class="text-error"> Không nhận được mã OTP 
+                  <span class="resend-otp" @click="resendOTP">Gửi lại mã</span>
+                </p>
+              </div>
+              <div class="btn">
+                <button class="btn-back" @click="goBack">Trở về</button>
+                <button class="btn-change-password" @click="verifyOTP">Hoàn tất đăng ký tài khoản</button>
+              </div>
+            </div>
+          </div>
+
           <!-- Dialog-register-sussess -->
           <div v-if="registerDialog" class="dialog-overlay">
             <div class="dialog-register-success">
@@ -207,8 +234,8 @@
               <p class="dialog-protect_p1">Thông tin bạn đăng ký có thể đã trùng </p>  
               <p>với một tài khoản khác trong hệ thống</p>
                 <div class="group-login">          
-                  <button class="btn-login" @click="hideRegisterDialog">Bỏ qua đăng ký</button>
-                  <button class="btn-contract">Thử lại</button>
+                  <button class="btn-login" @click="hideFailRegisterDialog">Bỏ qua đăng ký</button>
+                  <button class="btn-contract" @click="hideChangeRegisterDialog">Thử lại</button>
                 </div>
             </div>
           </div>
@@ -221,6 +248,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import { ref, onMounted } from "vue";
 export default {
   setup() {
@@ -233,12 +261,54 @@ export default {
       policyDialog.value = false;
     };
 
+    // show password
+    const showPassword = ref(false); 
+    const showConfirmPassword = ref(false);
+
+    const togglePassword = () => {
+      showPassword.value = !showPassword.value;
+    };
+
+    const toggleConfirmPassword = () => {
+      showConfirmPassword.value = !showConfirmPassword.value;
+    }
+
     //dialog-register
     const registerDialog = ref(false);
-    const failRegisterDialog = ref(false)
+
+    const failRegisterDialog = ref(false);
 
     const hideRegisterDialog = () => {
       registerDialog.value = false;
+      form.value.store_name = '';
+      form.value.phone_number = '';
+      form.value.email = '';
+      form.value.password = '';
+      form.value.password_confirmation = '';
+      form.value.address = '';
+      form.value.province_id = null;
+      form.value.district_id = null;
+      form.value.ward_id = null;
+      form.value.checkmark = false;
+    };
+
+    const hideFailRegisterDialog = () => {
+      failRegisterDialog.value = false;
+      errorMessages.value = {};
+      form.value.store_name = '';
+      form.value.phone_number = '';
+      form.value.email = '';
+      form.value.password = '';
+      form.value.password_confirmation = '';
+      form.value.address = '';
+      form.value.province_id = null;
+      form.value.district_id = null;
+      form.value.ward_id = null;
+      form.value.checkmark = false;
+    };
+
+    const hideChangeRegisterDialog = () => {
+      failRegisterDialog.value = false;
     }
 
     const form = ref ({
@@ -252,9 +322,11 @@ export default {
       district_id: null,
       ward_id: null,
       checkmark: false,
+      otp: '',
+      email: '',
     });
 
-    const errorMessages = ref({})
+    const errorMessages = ref({});
 
     function validateRegister() {
       // check store_name
@@ -316,24 +388,6 @@ export default {
         return;
       }
       return 'success';
-    }
-
-    const btnRegister = async () => {
-      const validation = validateRegister();
-      if (validation === 'success') {
-        try {
-          const response = await axios.post('register', form.value);
-          console.log(response);
-          registerDialog.value = true;
-        } catch (error) {
-          console.error(error);
-        }
-      } else {
-        failRegisterDialog.value = true;
-        console.log(validation);
-
-      }
-      
     };
 
     var provinces = ref([]);
@@ -372,7 +426,6 @@ export default {
         });
       } else {
         districts.value = [];
-        // wards.value = [];
       }
       
     };
@@ -393,6 +446,72 @@ export default {
       
     };
     
+    // btn-register
+    const OTPDialog = ref(false);
+
+    const OTPhideDialog = () => {
+      OTPDialog.value = false;
+    };
+
+    const goBack = () => {
+      OTPDialog.value = false;
+      // btnRegister.value = true;
+    };
+
+    const btnRegister = async () => {
+      const validation = validateRegister();
+      if (validation === 'success') {
+        try {
+          const response = await axios.post('register', form.value);
+          console.log(response);
+          try {
+            const responseOtp = await axios.get(`get-otp?email=${form.value.email}`)
+            OTPDialog.value = true;
+          } catch (error) {
+          }
+        } catch (error) {
+          if (error.response.data.message == "The email has already been taken.") {
+            try {
+              const responseOtp = await axios.get(`get-otp?email=${form.value.email}`)
+              OTPDialog.value = true;
+            } catch (error) {
+
+            }
+          } else if (error.response.data.message.contains("has already been taken")) {
+            failRegisterDialog.value = true;
+          }
+          console.error(error);
+        }
+      } else {
+        failRegisterDialog.value = true;
+        console.log(validation);
+      }    
+    };
+
+    const resendOTP = async () => {
+      try {
+        const responseOtp = await axios.get(`get-otp?email=${form.value.email}`)
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    // check OTP
+    const verifyOTP = async () => {
+      try {
+        const response = await axios.post('verify-otp', {
+          otp: form.value.otp,
+          email: form.value.email
+        });
+
+        registerDialog.value = true;
+        console.log(response);
+        OTPDialog.value = false;
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
     onMounted(() => {
       getProvince();
     });
@@ -413,6 +532,18 @@ export default {
       getWards,
       errorMessages,
       failRegisterDialog,
+      hideFailRegisterDialog,
+      hideChangeRegisterDialog,
+      showPassword,
+      togglePassword,
+      toggleConfirmPassword,
+      showConfirmPassword,
+      OTPDialog,
+      OTPhideDialog,
+      // countdownDisplay,
+      goBack,
+      verifyOTP,
+      resendOTP,
     };
   },
 };
@@ -511,6 +642,7 @@ export default {
   position: absolute;
   top: 50%;
   right: 10px;
+  cursor: pointer;
 }
 
 /* row-3 */
@@ -664,6 +796,118 @@ export default {
   text-decoration: none;
   color: #F59E0B;
   cursor: pointer;
+}
+
+/* dialog-send-OTP */
+
+.dialog-overlay-OTP {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}
+
+.dialog-OTP {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  background-color: #fff;
+}
+
+.text-close {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  width: 560px;
+  height: 72px;
+  padding-left: 24px;
+  padding-right: 24px;
+  background-color: #f7f8f9;
+}
+
+
+.form-group-OTP {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.text-error-message-otp {
+  position: absolute;
+  bottom: 70px;
+  color: #ECAD48;
+  font-size: 0.75rem;
+}
+
+.Otp-p {
+  padding-top: 24px;
+  color: #10B981;
+  font-weight: 600;
+  size: 25px;
+  line-height: 34px;
+  font-size: 1.25rem;
+}
+
+.count-down__p {
+  padding-top: 24px;
+  padding-bottom: 16px;
+  color: #ECAD48;
+}
+
+.text-error {
+  padding-top: 16px;
+  padding-bottom: 32px;
+  color: #4B5768 !important;
+}
+
+.resend-otp {
+  color: #0079ED;
+  cursor: pointer;
+}
+
+.btn-back {
+  height: 44px;
+  margin-right: 24px;
+  padding-left: 12px;
+  padding-right: 12px;
+  background-color: #E7EAEE;
+  color: #323A46;
+  border: 1px solid #E7EAEE;
+  border-radius: 4px;
+}
+
+.btn-change-password {
+  height: 44px;
+  padding-left: 12px;
+  padding-right: 12px;
+  background-color: #fdba4d;
+  color: #ffffff;
+  border: 1px solid #fdba4d;
+  border-radius: 4px;
+}
+
+.forgot-password__h6 {
+  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 600;
+  size: 19px;
+  line-height: 23px;
+}
+
+.button-close {
+  cursor: pointer;
+}
+
+.btn {
+  text-align: center;
+  padding-bottom: 48px;
 }
 
 /* Dialog register success */

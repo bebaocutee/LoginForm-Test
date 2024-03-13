@@ -58,18 +58,20 @@
           <div class="form-group-email-phone">
             <label>Email/ Số điện thoại</label>
             <input
-              v-model="emailOrPhone"
               class="form-group__email-phone"
               placeholder="Nhập email hoặc số điện thoại..."
+              
+              v-model="formReset.email"
+              @input="errorMessages.email = null"
             />
+            <span v-if="errorMessages.email" class="text-error-message">{{ errorMessages.email }}</span>
           </div>
           <div class="btn">
             <p class="forgot-password_p">
               Bạn vui lòng kiểm tra hòm thư đến hoặc mục tin nhắn <br />
               trên điện thoại để lấy mã OTP
             </p>
-            <button
-              @click="submitForgotPassword" class="forgot-password-button">Gửi yêu cầu</button>
+            <button @click="submitForgotPassword" class="forgot-password-button">Gửi yêu cầu</button>
           </div>
         </div>
       </div>
@@ -85,10 +87,12 @@
           </div>
           <div class="form-group-OTP">
             <p class="Otp-p">MÃ OTP ĐÃ ĐƯỢC GỬI TỚI SỐ ĐIỆN THOẠI/ EMAIL</p>
-            <p class="count-down__p">Thời gian còn lại: 3:00 phút</p>
-            <v-otp-input></v-otp-input>
+            <p class="count-down__p">Thời gian còn lại: {{ countdownDisplay }} phút</p>
+            <v-otp-input v-model="formReset.otp"></v-otp-input>
+            <span v-if="errorMessages.otp" class="text-error-message-otp">{{ errorMessages.otp }}</span>
+
             <p class="text-error"> Không nhận được mã OTP 
-              <span class="resend-otp">Gửi lại mã</span>
+              <span class="resend-otp" @click="resendOTP">Gửi lại mã</span>
             </p>
           </div>
           <div class="btn">
@@ -98,9 +102,9 @@
         </div>
       </div>
 
-      <!-- Dialog-change password -->
+      <!-- Dialog-change-password-success -->
       <div v-if="changePasswordDialog" class="dialog-overlay-change-password">
-        <div class="dialog-change-password">
+        <div class="dialog-OTP">
           <div class="text-close">
             <h6 class="forgot-password__h6">Thiết lập mật khẩu mới</h6>
             <span class="button-close" @click="changehideDialog"
@@ -113,9 +117,11 @@
                 <input
                   class="new-password"
                   type="password"
+                  :type="showPassword ? 'text' : 'password'"
                   placeholder="Nhập mật khẩu..."
+                  v-model="formReset.password"
                 />
-                <span class="change-password-icon">
+                <span class="change-password-icon" @click="togglePassword">
                   <img
                     src="/src/assets/images/lookpassword.svg"
                     width="24px"
@@ -126,13 +132,15 @@
             </div>
 
             <div class="form-group__change-pasword">
-              <label>Mật khẩu mới</label>
+              <label>Xác nhận mật khẩu mới</label>
               <input
                 class="comfirm-password"
                 type="password"
+                :type="showConfirmPassword ? 'text' : 'password'"
                 placeholder="Nhập mật khẩu..."
+                v-model="formReset.password_confirmation"
               />
-              <span class="change-password-icon">
+              <span class="change-password-icon" @click="toggleConfirmPassword">
                 <img
                   src="/src/assets/images/lookpassword.svg"
                   width="24px"
@@ -149,18 +157,51 @@
 
         </div>
       </div>
+
+      <!-- Dialog-change-password-fail -->
+      <div v-if="failChangeOTPDialog" class="dialog-overlay-fail-change-OTP">
+        <div class="dialog-OTP">
+
+          <div class="text-close">
+            <h6 class="forgot-password__h6">Thiết lập mật khẩu mới</h6>
+            <span class="button-close" @click="failChangeHideDialog"
+              ><img src="/src/assets/images/close.svg" alt="close"
+            /></span>
+          </div>
+
+          <div class="send-OTP-fail">
+            <img src="/src/assets/images/errorOTP.svg" alt="error" class="icon-send-error">
+            <p class="fail-change-text-p"> Mã khôi phục không đúng 
+              <span class="fail-change-otp" @click="failChangeOTP">Gửi lại mã</span>
+            </p>
+          </div>
+
+          <div class="form-group-OTP">
+            <p class="count-down__p">Thời gian còn lại: {{ countdownDisplay }} phút</p>
+            <v-otp-input></v-otp-input>
+          </div>
+
+          <div class="btn-change-fail-otp">
+            <button class="btn-back" @click="backDialogOTP">Trở về</button>
+            <button class="btn-change-password" @click="changehideDialog">Khôi phục mật khẩu</button>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from 'vue-router';
+import axios from 'axios';
 export default {
   setup() {
     const forgotPasswordDialog = ref(false);
+    const form = ref({});
 
-    const emailOrPhone = ref("");
     const showForgotPasswordDialog = () => {
       forgotPasswordDialog.value = true;
     };
@@ -169,52 +210,157 @@ export default {
       forgotPasswordDialog.value = false;
     };
 
-    // OTP
+    const errorMessages = ref({});
+
+    ///////////////// send-OTP
     const OTPDialog = ref(false);
 
-    const submitForgotPassword = () => {
-      // Thực hiện xử lý để gửi yêu cầu và lấy mã OTP
-      OTPDialog.value = true;
-      // ...
-
-      // Sau khi hoàn thành xử lý, ẩn dialog
-      hideDialog();
+    const submitForgotPassword = async () => {
+      if (!formReset.value.email) {
+        errorMessages.value.email = 'Vui lòng nhập email hoặc số điện thoại';
+      } else{
+        try {
+          const response = await axios.get(`get-otp?email=${formReset.value.email}`
+          );
+          const otp = response.data.otp;
+          OTPDialog.value = true;
+          hideDialog();
+          startCountdown();      
+        } catch (error) {
+          errorMessages.value.email = 'Email không tồn tại';
+          console.log(error);
+        }   
+      }     
     };
 
+    // 
     const OTPhideDialog = () => {
       OTPDialog.value = false;
+      resetCountDown();
     };
 
     const goBack = () => {
       OTPDialog.value = false;
       forgotPasswordDialog.value = true;
+      resetCountDown();
     };
 
-    // change password
+    /////////////////// check OTP
+    const countdown = ref(180);
+    const timer = ref(null);
+    const otp = ref('');
+   
+
+    const countdownDisplay = computed(() => {
+      const minutes = Math.floor(countdown.value / 60);
+      const seconds = countdown.value % 60;
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    });
+
+    const startCountdown = () => {
+      timer.value = setInterval(() => {
+        countdown.value--;
+        if (countdown.value === 0) {
+          stopCountdown();
+          return 'Hết thời gian nhập OTP'
+        }
+      },1000);
+    };
+
+    const stopCountdown = () => {
+      clearInterval(timer.value);
+    };
+
+    const resetCountDown = () => {
+      countdown.value = 180;
+      stopCountdown();
+    }
+
+    ////////////// change-password-success--fail
     const changePasswordDialog = ref(false);
+
+    const failChangeOTPDialog = ref(false);
+    const formReset = ref({
+      otp: ''
+    })
+
     const changehideDialog = () => {
       changePasswordDialog.value = false;
     }
 
-
-    const changePassword = () => {
-      changePasswordDialog.value = true;
-      OTPDialog.value = false;
-
+    const failChangeHideDialog = () => {
+      failChangeOTPDialog.value = false;
     }
 
-    const goLogin= () => {
-      changePasswordDialog.value = false;
-      changePassword.value = true;
+    const changePassword = async () => {
+      if (!formReset.value.otp) {
+        errorMessages.value.otp = 'Vui lòng nhập mã OTP';
+      } else {
+          try {
+            const response = await axios.post('verify-otp', {
+              otp: formReset.value.otp,
+              email: formReset.value.email   
+            });
+            changePasswordDialog.value = true;
+            OTPDialog.value = false;
+          } catch (error) {
+            failChangeOTPDialog.value = true;
+            OTPDialog.value = false;
+          }
+      }
     };
-    // login
+      /////// resend-OTP
+    const resendOTP = async () => {
+      try {
+        const responseOtp = await axios.get(`get-otp?email=${formReset.value.email}`)
+      } catch (error) {
+        console.error(error);
+      }
+    }
 
-    var form = {};
+    const backDialogOTP = () => {
+      failChangeOTPDialog.value = false;
+      OTPDialog.value = true;
+    };
+
+    const goLogin = async () => {
+      try {
+        const passwordFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{9,}$/;
+        if (!passwordFormat.test(formReset.value.password)) {
+          return;
+        }
+
+        // check confirpassword
+        if (formReset.value.password_confirmation !== formReset.value.password) {
+          return;
+        }
+        await axios.post('reset-password', formReset.value)
+        changePasswordDialog.value = false;
+        changePassword.value = true;
+      } catch(error) {
+        console.log(error);
+      }
+    };
+
+    ///////////// show password
+    // const showPassword = ref(true); 
+    // const showConfirmPassword = ref(true);
+
+    // const togglePassword = () => {
+    //   showPassword.value = !showPassword.value;
+    // };
+
+    // const toggleConfirmPassword = () => {
+    //   showConfirmPassword.value = !showConfirmPassword.value;
+    // }
+    
+    ///////////// login
+
     const router = useRouter();
 
     const login = async () => {
       try {
-        const response = await axios.post('login', form);
+        const response = await axios.post('login', form.value);
         console.log(response);
         router.push('/trang-chu');
       } catch (error) {
@@ -224,7 +370,6 @@ export default {
 
     return {
       forgotPasswordDialog,
-      emailOrPhone,
       showForgotPasswordDialog,
       submitForgotPassword,
       hideDialog,
@@ -238,6 +383,18 @@ export default {
       goLogin,
       changePasswordDialog,
       changehideDialog,
+      errorMessages,
+      failChangeHideDialog,
+      failChangeOTPDialog,
+      backDialogOTP,
+      countdownDisplay,
+      otp,
+      // showPassword,
+      // showConfirmPassword,
+      // togglePassword,
+      // toggleConfirmPassword,
+      resendOTP,
+      formReset
     };
   },
 };
@@ -396,6 +553,7 @@ export default {
 }
 
 .form-group-email-phone {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 24px 24px 12px 24px;
@@ -434,6 +592,13 @@ export default {
   border-radius: 4px;
 }
 
+.text-error-message {
+  position: absolute;
+  bottom: -8px;
+  color: #ECAD48;
+  font-size: 0.75rem;
+}
+
 /* dialog-OTP */
 
 .dialog-overlay-OTP {
@@ -456,9 +621,17 @@ export default {
 }
 
 .form-group-OTP {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.text-error-message-otp {
+  position: absolute;
+  bottom: 70px;
+  color: #ECAD48;
+  font-size: 0.75rem;
 }
 
 .Otp-p {
@@ -484,6 +657,7 @@ export default {
 
 .resend-otp {
   color: #0079ED;
+  cursor: pointer;
 }
 
 .btn-back {
@@ -507,7 +681,7 @@ export default {
   border-radius: 4px;
 }
 
-/* dialog change password */
+/* dialog change password seccess*/
 .dialog-overlay-change-password {
   position: fixed;
   top: 0;
@@ -569,6 +743,7 @@ export default {
   position: absolute;
   top: 38%;
   right: 10px;
+  cursor: pointer;
 }
 
 .btn-change-login {
@@ -592,4 +767,48 @@ export default {
   color: #ffffff;
 }
 
+/* dialog change password fail*/
+.dialog-overlay-fail-change-OTP {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.dialog-OTP {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  background-color: #fff;
+}
+
+.send-OTP-fail {
+  display: flex;
+  width: max-content;
+  background-color: #FFF2F2;
+  margin: 24px auto 8px auto;
+  padding: 7px 10px;
+  border-radius: 4px;
+}
+
+.fail-change-text-p {
+  padding-left: 10px;
+  color: #ECAD48;
+}
+
+.fail-change-otp {
+  color: #0079ED;
+  cursor: pointer;
+}
+
+.btn-change-fail-otp {
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 48px;
+}
 </style>
