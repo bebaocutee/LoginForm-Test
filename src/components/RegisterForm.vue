@@ -198,6 +198,7 @@
               </div>
               <div class="form-group-OTP">
                 <p class="count-down__p">Thời gian còn lại: {{ countdownDisplay }} phút</p>
+                <span class="text-error-countdown">{{ errorMessages.countdown }}</span>
                 <v-otp-input v-model="form.otp"></v-otp-input>
                 <span v-if="errorMessages.otp" class="text-error-message-otp">{{ errorMessages.otp }}</span>
 
@@ -250,6 +251,7 @@
 <script>
 import axios from "axios";
 import { ref, onMounted } from "vue";
+import { computed } from "vue";
 export default {
   setup() {
     const policyDialog = ref(false);
@@ -290,6 +292,8 @@ export default {
       form.value.district_id = null;
       form.value.ward_id = null;
       form.value.checkmark = false;
+
+      // countdown.value = 180;
     };
 
     const hideFailRegisterDialog = () => {
@@ -451,10 +455,12 @@ export default {
 
     const OTPhideDialog = () => {
       OTPDialog.value = false;
+      resetCountDown();
     };
 
     const goBack = () => {
       OTPDialog.value = false;
+      resetCountDown();
       // btnRegister.value = true;
     };
 
@@ -464,23 +470,18 @@ export default {
         try {
           const response = await axios.post('register', form.value);
           console.log(response);
+
           try {
             const responseOtp = await axios.get(`get-otp?email=${form.value.email}`)
             OTPDialog.value = true;
           } catch (error) {
+            console.error(error);
           }
+          
         } catch (error) {
-          if (error.response.data.message == "The email has already been taken.") {
-            try {
-              const responseOtp = await axios.get(`get-otp?email=${form.value.email}`)
-              OTPDialog.value = true;
-            } catch (error) {
-
-            }
-          } else if (error.response.data.message.contains("has already been taken")) {
+          if (error.response.data.message.includes("has already been taken")) {
             failRegisterDialog.value = true;
           }
-          console.error(error);
         }
       } else {
         failRegisterDialog.value = true;
@@ -491,14 +492,20 @@ export default {
     const resendOTP = async () => {
       try {
         const responseOtp = await axios.get(`get-otp?email=${form.value.email}`)
+        resetCountDown();
+        startCountdown();   
       } catch (error) {
         console.error(error);
       }
     }
 
-    // check OTP
+    //////////// check OTP
     const verifyOTP = async () => {
       try {
+        if (!form.value.otp) {
+          errorMessages.value.otp = "Vui lòng nhập mã OTP"; 
+          return;
+      }
         const response = await axios.post('verify-otp', {
           otp: form.value.otp,
           email: form.value.email
@@ -512,8 +519,43 @@ export default {
       }
     };
 
+    /////////////// countdown
+    const countdown = ref(180);
+    const timer = ref(null);
+    const formCountDown = ref ({
+      countdown: '',
+    })
+
+    const countdownDisplay = computed(() => {
+      const minutes = Math.floor(countdown.value / 60);
+      const seconds = countdown.value % 60;
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    });
+
+    const startCountdown = () => {
+      timer.value = setInterval(() => {
+        countdown.value--;
+        if (countdown.value === 0) {
+          stopCountdown();
+          errorMessages.value.countdown = 'Hết thời gian nhập OTP';
+        }
+      },1000);
+    };
+
+    const stopCountdown = () => {
+      clearInterval(timer.value);
+    };
+
+    const resetCountDown = () => {
+      countdown.value = 180;
+      stopCountdown();
+      errorMessages.value.countdown = '';
+    }
+
     onMounted(() => {
       getProvince();
+      resetCountDown();
+      startCountdown();
     });
 
     return {
@@ -540,7 +582,8 @@ export default {
       showConfirmPassword,
       OTPDialog,
       OTPhideDialog,
-      // countdownDisplay,
+      countdownDisplay,
+      formCountDown,
       goBack,
       verifyOTP,
       resendOTP,
@@ -908,6 +951,13 @@ export default {
 .btn {
   text-align: center;
   padding-bottom: 48px;
+}
+
+.text-error-countdown {
+  position: absolute;
+  top: 45px;
+  color: #ECAD48;
+  font-size: 0.75rem;
 }
 
 /* Dialog register success */
